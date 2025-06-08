@@ -10,6 +10,7 @@ def login():
             st.session_state.authenticated = True
             st.session_state.username = username
             st.success("Connexion réussie")
-            st.experimental_rerun()  # ← force le rechargement pour afficher le chat
+            #st.experimental_rerun()  # ← force le rechargement pour afficher le chat
+            st.stop()
         else:
             st.error("Nom d'utilisateur ou mot de passe incorrect")
