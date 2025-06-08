@@ -1,10 +1,10 @@
 import sqlite3
 from collections import defaultdict
 
-def save_message(user_id, role, content):
+def save_message(user_id, role, content, timestamp):
     conn = sqlite3.connect('chatbot.db')
     c = conn.cursor()
-    c.execute("INSERT INTO messages (user_id, role, content) VALUES (?, ?, ?)", (user_id, role, content))
+    c.execute("INSERT INTO messages (user_id, role, content) VALUES (?, ?, ?)", (user_id, role, content, timestamp))
     conn.commit()
     conn.close()
 
