@@ -15,7 +15,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS messages (
             user_id TEXT,
             role TEXT,
-            content TEXT
+            content TEXT,
+            timestamp TEXT
         )
     """)
 
