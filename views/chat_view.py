@@ -41,19 +41,8 @@ def chat_interface():
         on_change=handle_user_input,
         placeholder="Entrez votre message ici et appuyez sur Entrée"
     )
-
-    # 🔁 Historique
-    st.subheader("📜 Historique de vos échanges")
-    messages = message_model.get_messages_grouped(st.session_state.username)
-
-    for timestamp, msgs in messages.items():
-        st.markdown(f"<hr><p style='color:gray'><b>📅 Session :</b> {timestamp}</p>", unsafe_allow_html=True)
-        for role, content in msgs:
-            if role == "user":
-                chat_ui.render_user_message(content)
-            elif role == "assistant":
-                chat_ui.render_assistant_message(content)
-
+    
+    
     # ─────────────────────────────
     # 📁 Analyse de fichier
     st.markdown("---")
@@ -82,6 +71,20 @@ def chat_interface():
             st.markdown(key_points)
             chat_ui.speak(key_points)
 
+
+    # 🔁 Historique
+    st.subheader("📜 Historique de vos échanges")
+    messages = message_model.get_messages_grouped(st.session_state.username)
+
+    for timestamp, msgs in messages.items():
+        st.markdown(f"<hr><p style='color:gray'><b>📅 Session :</b> {timestamp}</p>", unsafe_allow_html=True)
+        for role, content in msgs:
+            if role == "user":
+                chat_ui.render_user_message(content)
+            elif role == "assistant":
+                chat_ui.render_assistant_message(content)
+
+    
     # 🔚 Déconnexion
     st.sidebar.markdown("---")
     if st.sidebar.button("🚪 Se déconnecter"):
