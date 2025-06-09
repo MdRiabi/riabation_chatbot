@@ -1,102 +1,107 @@
 import streamlit as st
-import time
-import requests
-from streamlit_lottie import st_lottie
+import streamlit.components.v1 as components
+import pyttsx3
 
-class ChatUI:
-    def __init__(self):
-        self.set_style()
+# ⏺️ Initialisation moteur vocal
+engine = pyttsx3.init()
 
-    def set_style(self):
+# ─────────────────────────────
+# 🎨 Thème clair / sombre
+def render_theme_selector():
+    """Render theme selector and apply the chosen theme."""
+    # Définir une valeur par défaut si elle n'existe pas
+    if "theme_choice" not in st.session_state:
+        st.session_state.theme_choice = "Clair"  # Default theme
+
+    # Utiliser directement le widget pour gérer l'état
+    theme = st.sidebar.radio("🌗 Choisissez le thème :", ["Clair", "Sombre"], index=0 if st.session_state.theme_choice == "Clair" else 1)
+
+    # Appliquer le thème en fonction de la sélection
+    if theme == "Clair":
+        inject_css(light=True)
+    else:
+        inject_css(light=False)
+
+    # Mettre à jour la session state uniquement si nécessaire
+    st.session_state.theme_choice = theme
+
+
+def inject_css(light=True):
+    if light:
         st.markdown("""
-        <style>
-        .stApp {
-            background: linear-gradient(to right, #141e30, #243b55);
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-        }
-
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin: 10px 0;
-        }
-
-        .user-bubble, .ai-bubble {
-            max-width: 80%;
-            padding: 10px 15px;
-            border-radius: 15px;
-            animation: fadeIn 0.4s ease;
-            line-height: 1.4;
-        }
-
-        .user-bubble {
-            background-color: #1e88e5;
-            align-self: flex-end;
-            color: white;
-        }
-
-        .ai-bubble {
-            background-color: #4caf50;
-            align-self: flex-start;
-            color: white;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .message-row {
-            display: flex;
-            align-items: flex-start;
-        }
-        </style>
+            <style>
+                html, body, [class*="css"] {
+                    background-color: #ffffff !important;
+                    color: #000000 !important;
+                }
+            </style>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <style>
+                html, body, [class*="css"] {
+                    background-color: #111111 !important;
+                    color: #eeeeee !important;
+                }
+            </style>
         """, unsafe_allow_html=True)
 
-    def show_user_message(self, message):
-        st.markdown(f"""
-        <div class="chat-container">
-            <div class="message-row" style="justify-content: flex-end;">
-                <div class="user-bubble">{message}</div>
-                <img class="avatar" src="https://avatars.githubusercontent.com/u/1?v=4">
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+# ─────────────────────────────
+# 🔊 Synthèse vocale activable
+def render_voice_toggle():
+    """Toggle synthèse vocale."""
+    if "voice_enabled" not in st.session_state:
+        st.session_state.voice_enabled = False
+    enabled = st.sidebar.checkbox("🔊 Synthèse vocale activée", value=st.session_state.voice_enabled)
+    st.session_state.voice_enabled = enabled
 
-    def show_ai_typing(self):
-        lottie_url = "https://lottie.host/60a4a984-89df-4df6-9e54-82c424f62659/GIM9QHKw3u.json"
-        st_lottie(self.load_lottie_url(lottie_url), height=120, key="typing")
-
-    def show_ai_message_typing(self, full_message, speed=0.01):
-        placeholder = st.empty()
-        displayed = ""
-        for char in full_message:
-            displayed += char
-            html = f"""
-            <div class="chat-container">
-                <div class="message-row">
-                    <img class="avatar" src="https://cdn-icons-png.flaticon.com/512/4712/4712037.png">
-                    <div class="ai-bubble">{displayed}</div>
-                </div>
-            </div>
-            """
-            placeholder.markdown(html, unsafe_allow_html=True)
-            time.sleep(speed)
-
-    def load_lottie_url(self, url: str):
+    # Arrêter la synthèse vocale si désactivée
+    if not enabled:
+        engine.stop()
+        
+def speak(text):
+    if st.session_state.get("voice_enabled", False):
         try:
-            r = requests.get(url)
-            if r.status_code != 200:
-                return None
-            return r.json()
-        except Exception:
-            return None
+            engine.stop()  # Arrête toute lecture précédente
+            engine.say(text)
+            engine.runAndWait()
+        except Exception as e:
+            st.warning(f"Erreur synthèse vocale : {e}")
+
+# ─────────────────────────────
+# 🌌 Animation IA
+def render_header_animation():
+    animation_html = """
+    <div style="text-align:center; margin-top:10px; margin-bottom:10px;">
+        <img src="https://media.tenor.com/7Zyuxz9FEh0AAAAC/ai-artificial-intelligence.gif" width="300"/>
+    </div>
+    """
+    st.markdown(animation_html, unsafe_allow_html=True)
+
+# ─────────────────────────────
+# 🌟 Bannière futuriste
+def render_ai_neon_banner():
+    neon_html = """
+    <h2 style='text-align: center; font-family: "Courier New", monospace;
+        color: #00f7ff; text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;'>
+        🤖 Intelligence Artificielle - Chatbot Riabation
+    </h2>
+    """
+    st.markdown(neon_html, unsafe_allow_html=True)
+
+# ─────────────────────────────
+# 💬 Affichage des messages
+def render_user_message(message):
+    st.markdown(f"""
+        <div style="background-color:#007acc; padding:12px; border-radius:12px; margin:8px 0; color:white">
+            <strong>🧑‍💼 Vous :</strong><br>{message}
+        </div>
+    """, unsafe_allow_html=True)
+
+def render_assistant_message(message):
+    st.markdown(f"""
+        <div style="background-color:#0f0f0f; padding:12px; border-radius:12px; margin:8px 0; color:#00f7ff;
+                    font-family: 'Segoe UI', sans-serif;">
+            <strong>🤖 IA :</strong><br>{message}
+        </div>
+    """, unsafe_allow_html=True)

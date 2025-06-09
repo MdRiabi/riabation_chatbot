@@ -1,0 +1,7 @@
+[theme]
+base="light"  # par défaut : light, mais sera dynamique ensuite
+primaryColor="#00f7ff"
+backgroundColor="#ffffff"
+secondaryBackgroundColor="#f0f2f6"
+textColor="#000000"
+font="sans serif"

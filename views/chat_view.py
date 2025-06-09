@@ -1,25 +1,40 @@
 import streamlit as st
 from datetime import datetime
-from services import groq_service
-from services import file_service
+from services import groq_service, file_service
 from models import message_model
+from views import chat_ui  # 📦 Module UI/UX personnalisé
+import time
 
 def handle_user_input():
     user_input = st.session_state.user_input.strip()
     if user_input:
-        response = groq_service.ask_groq(user_input)
+        with st.spinner("🤖 L'IA réfléchit..."):
+            time.sleep(0.6)  # ⏳ Petite pause visuelle
+            response = groq_service.ask_groq(user_input)
+
         timestamp = datetime.now().isoformat()
         message_model.save_message(st.session_state.username, "user", user_input, timestamp)
         message_model.save_message(st.session_state.username, "assistant", response, timestamp)
 
-        # vider après traitement (via reinitialisation automatique dans callback)
-        st.session_state.user_input = ""  # autorisé ici car exécuté avant rendu du widget
+        chat_ui.speak(response)  # 🔊 Synthèse vocale
 
-def chat_interface():
+        st.session_state.user_input = ""  # Réinitialise le champ
+
+def chat_interface(): 
+    chat_ui.render_voice_toggle()
+
+    # 🎨 Choix du thème
+    chat_ui.render_theme_selector()
+
+    # 🌌 Animation futuriste
+    chat_ui.render_header_animation()
+    chat_ui.render_ai_neon_banner()
+
+    # 🔰 En-tête
     st.title("💬 Chatbot Riabation")
     st.markdown(f"👤 Connecté en tant que **{st.session_state.username}**")
 
-    # ✅ Text input avec on_change
+    # 📝 Champ de saisie
     st.text_input(
         "Posez votre question :",
         key="user_input",
@@ -35,17 +50,12 @@ def chat_interface():
         st.markdown(f"<hr><p style='color:gray'><b>📅 Session :</b> {timestamp}</p>", unsafe_allow_html=True)
         for role, content in msgs:
             if role == "user":
-                st.markdown(f"""<div style="background-color:#e0f7fa; padding:10px; border-radius:10px; margin:5px 0">
-                    <strong>🧑‍💼 Vous :</strong><br>{content}</div>""", unsafe_allow_html=True)
+                chat_ui.render_user_message(content)
             elif role == "assistant":
-                st.markdown(f"""<div style="background-color:#f1f8e9; padding:10px; border-radius:10px; margin:5px 0">
-                    <strong>🤖 IA :</strong><br>{content}</div>""", unsafe_allow_html=True)
-
-    # ... (reste du code : analyse fichier, déconnexion, etc.)
-
+                chat_ui.render_assistant_message(content)
 
     # ─────────────────────────────
-    # 📁 Analyse de fichier (si connecté)
+    # 📁 Analyse de fichier
     st.markdown("---")
     st.subheader("📁 Analyse de fichier")
 
@@ -63,14 +73,16 @@ def chat_interface():
             summary = groq_service.ask_groq(prompt)
             st.success("📋 Résumé :")
             st.write(summary)
+            chat_ui.speak(summary)
 
         if st.button("🔍 Extraire les points clés"):
             prompt = f"Voici un texte :\n\n{extracted_text[:5000]}\n\nDonne les points clés sous forme de liste claire."
             key_points = groq_service.ask_groq(prompt)
             st.success("🔑 Points clés :")
             st.markdown(key_points)
+            chat_ui.speak(key_points)
 
-    # 🔚 Bouton de déconnexion
+    # 🔚 Déconnexion
     st.sidebar.markdown("---")
     if st.sidebar.button("🚪 Se déconnecter"):
         st.session_state.authenticated = False
