@@ -1,6 +1,8 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import pyttsx3
+from gtts import gTTS  # Google Text-to-Speech (cloud)
+import base64
 
 # Initialisation moteur vocal
 engine = pyttsx3.init()
@@ -115,7 +117,26 @@ def render_voice_toggle():
     if not enabled:
         engine.stop()
 
-def speak(text):
+#def speak(text):
+
+
+def speak(text, lang='fr'):
+    tts = gTTS(text=text, lang=lang)
+    tts.save("audio.mp3")
+    
+    # Lecture automatique dans Streamlit
+    audio_file = open("audio.mp3", "rb")
+    audio_bytes = audio_file.read()
+    st.audio(audio_bytes, format="audio/mp3")
+    
+    # Alternative: Lecture auto via HTML
+    b64 = base64.b64encode(audio_bytes).decode()
+    audio_html = f"""
+        <audio autoplay>
+        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+    """
+    st.components.v1.html(audio_html, height=0)
     if st.session_state.get("voice_enabled", False):
         try:
             engine.stop()
