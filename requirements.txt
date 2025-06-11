@@ -2,7 +2,9 @@ streamlit
 groq
 python-dotenv
 PyPDF2
-- pyttsx3==2.90
-+ gTTS==2.5.1
-+ python-dotenv>=1.0.0  # Si besoin de secrets
+pyttsx3==2.90
+streamlit==1.33.0
+gTTS==2.5.1
+python-dotenv>=1.0.0
+requests==2.32.3
 
