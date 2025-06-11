@@ -4,6 +4,13 @@ import pyttsx3
 from gtts import gTTS  # Google Text-to-Speech (cloud)
 import base64
 
+# Solution de repli si gTTS ne s'installe pas
+try:
+    from gtts import gTTS
+    TTS_ENABLED = True
+except ImportError:
+    TTS_ENABLED = False
+
 # Initialisation moteur vocal
 engine = pyttsx3.init()
 
@@ -120,30 +127,36 @@ def render_voice_toggle():
 #def speak(text):
 
 
-def speak(text, lang='fr'):
-    tts = gTTS(text=text, lang=lang)
-    tts.save("audio.mp3")
+def speak(text, lang='fr-FR'):
+    """Utilise la synthèse vocale du navigateur pour lire le texte"""
+    # Échapper les caractères spéciaux pour JavaScript
+    safe_text = text.replace('"', '\\"').replace('\n', ' ')
     
-    # Lecture automatique dans Streamlit
-    audio_file = open("audio.mp3", "rb")
-    audio_bytes = audio_file.read()
-    st.audio(audio_bytes, format="audio/mp3")
+    js_code = f"""
+    <script>
+    function speak() {{
+        if ('speechSynthesis' in window) {{
+            const utterance = new SpeechSynthesisUtterance("{safe_text}");
+            utterance.lang = '{lang}';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }} else {{
+            console.warn("Votre navigateur ne supporte pas la synthèse vocale");
+        }}
+    }}
     
-    # Alternative: Lecture auto via HTML
-    b64 = base64.b64encode(audio_bytes).decode()
-    audio_html = f"""
-        <audio autoplay>
-        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-        </audio>
+    // Lancer quand la page est prête
+    if (document.readyState === 'complete') {{
+        speak();
+    }} else {{
+        window.addEventListener('load', speak);
+    }}
+    </script>
     """
-    st.components.v1.html(audio_html, height=0)
-    if st.session_state.get("voice_enabled", False):
-        try:
-            engine.stop()
-            engine.say(text)
-            engine.runAndWait()
-        except Exception as e:
-            st.warning(f"Erreur synthèse vocale : {e}")
+    components.html(js_code, height=0, width=0)
+    
+    # Optionnel: Afficher une icône audio
+    st.markdown(f'<div style="margin-top:-30px;margin-bottom:10px">🔊 Lecture audio...</div>', unsafe_allow_html=True)
 
 # ───────────── IA UI ─────────────
 def render_header_animation():
