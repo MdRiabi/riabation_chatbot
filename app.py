@@ -3,6 +3,7 @@ from controllers import auth_controller, chat_controller
 from db.schema import init_db
 
 def main():
+    
     init_db()
 
     if "authenticated" not in st.session_state:
